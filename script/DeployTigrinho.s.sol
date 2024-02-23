@@ -6,11 +6,11 @@ import {Script} from "forge-std/Script.sol";
 import {Tigrinho} from "../src/Tigrinho.sol";
 
 contract DeployTigrinho is Script {
-    uint256 public constant INITIAL_SUPPLY = 1000000000000 ether;
+    uint256 public constant INITIAL_SUPPLY = 69 * 1e9 ether;
 
     function run() external returns (Tigrinho) {
         vm.startBroadcast();
-        Tigrinho tigrinho = new Tigrinho(INITIAL_SUPPLY, address(0), address(0));
+        Tigrinho tigrinho = new Tigrinho(INITIAL_SUPPLY);
         vm.stopBroadcast();
         return tigrinho;
     }

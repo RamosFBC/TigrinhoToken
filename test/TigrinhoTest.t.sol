@@ -11,7 +11,7 @@ contract TigrinhoTest is Test {
     DeployTigrinho public deployer;
 
     uint256 public constant STARTING_BALANCE = 1000000000 ether;
-    uint256 public constant INITIAL_SUPPLY = 1000000000000 ether;
+    uint256 public constant INITIAL_SUPPLY = 69 * 1e9 ether;
 
     address joao = makeAddr("Joao");
     address maria = makeAddr("Maria");
@@ -48,6 +48,6 @@ contract TigrinhoTest is Test {
 
     // Test if msg.sender balance is equal to initial supply
     function testMsgSenderBalance() public {
-        assertEq(INITIAL_SUPPLY, tigrinho.balanceOf(msg.sender));
+        assertEq(INITIAL_SUPPLY, tigrinho.balanceOf(msg.sender) + tigrinho.balanceOf(joao));
     }
 }
