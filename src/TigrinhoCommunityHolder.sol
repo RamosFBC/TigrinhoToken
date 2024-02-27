@@ -12,28 +12,18 @@ contract TigrinhoCommunityHolder is Ownable {
     // Referência para o contrato TigrinhoFund que gerencia as contribuicoes
     TigrinhoFund public tigrinhoFund;
 
-    // saldoComunidadeInicial é o saldo inicial que será depositado no contrato
+    // saldoComunidadeInicial é o saldo inicial depositado no contrato
     // para distribuir para a comunidade
-    uint256 public saldoTigrinhoInicial;
+    uint256 public saldoTigrinhoContrato;
 
     // Eventos para notificar as ações do contrato
-    event DepositoRealizado(address indexed remetente, uint256 quantidade);
-    event TokensDistribuidos(address[] destinatarios, uint256[] quantidades);
+    event TokensDistribuidos(address destinatario, uint256 quantidade);
+    event SaldoTigrinhoAntesDaDistribuicao(uint256 saldo);
+    event SaldoTigrinhoDepoisDaDistribuicao(uint256 saldo);
 
     constructor(address enderecoTigrinho, address enderecoFund) Ownable(msg.sender) {
         tigrinho = IERC20(enderecoTigrinho);
         tigrinhoFund = TigrinhoFund(enderecoFund);
-    }
-
-    // Função que será chamada após o mint dos tokens Tigrinho para
-    // depositar os tokens que serão distribuidos para a comunidade 
-    function depositar(uint256 quantidade) external onlyOwner{
-        // Transfere os tokens para o contrato
-        tigrinho.transferFrom(msg.sender, address(this), quantidade);
-
-        saldoTigrinhoInicial = quantidade;
-
-        emit DepositoRealizado(msg.sender, quantidade);
     }
 
         function getSaldoTigrinho() public view returns (uint256) {
@@ -43,29 +33,33 @@ contract TigrinhoCommunityHolder is Ownable {
         // Distribui os tokens para os contribuidores do TigrinhoFund
         function distribuirTokens() external onlyOwner {
             // Pega o total valor contribuido no contrato TigrinhoFund
-            uint256 totalDepositado = tigrinhoFund.getTotalContribuido();
+            uint256 totalDepositado = tigrinhoFund.totalContribuido();
             // Verifica se existe algum valor para ser distribuído
             require(totalDepositado > 0, "TigrinhoFund deve ter valor depositado para Distribuicao de tokens.");
 
+            saldoTigrinhoContrato = tigrinho.balanceOf(address(this));
+
             // Pega a quantidade de contribuidores e a lista de contribuidores
             uint256 quantidadeContribuidores = tigrinhoFund.getQuantidadeContribuidores();
-            address[] memory contribuidores = tigrinhoFund.getContribuidores();
             // Verifica se existe contribuidores para distribuir os tokens
             require(quantidadeContribuidores > 0, "TigrinhoFund deve ter contribuidores para Distribuicao de tokens.");
 
-            // Cria um array para armazenar as quantidades de tokens a serem transferidos
-            uint256[] memory quantidadesTokens = new uint256[](quantidadeContribuidores);
+            emit SaldoTigrinhoAntesDaDistribuicao(getSaldoTigrinho());
 
             // Calcula as quantidades de tokens a serem transferidos para cada contribuidor
             for (uint256 i = 0; i < quantidadeContribuidores; i++) {
-                address contribuidor = contribuidores[i];
+                address contribuidor = tigrinhoFund.contribuidores(i);
+
                 uint256 valorContribuido = tigrinhoFund.getValorContribuido(contribuidor);
-                uint256 quantidadeTokens = (valorContribuido * saldoTigrinhoInicial) / tigrinhoFund.getTotalContribuido();
-                quantidadesTokens[i] = quantidadeTokens;
+
+                uint256 quantidadeTokens = (valorContribuido * saldoTigrinhoContrato) / totalDepositado;
                 
                 // Transfere os tokens para o contribuidor
+                require(tigrinho.balanceOf(address(this)) >= quantidadeTokens, "O saldo do contrato em Tigrinhos deve ser maior ou igual o valor a ser transferido");
                 tigrinho.transfer(contribuidor, quantidadeTokens);
+                emit TokensDistribuidos(contribuidor, quantidadeTokens);
             }
+            emit SaldoTigrinhoDepoisDaDistribuicao(getSaldoTigrinho());
         }
 
 

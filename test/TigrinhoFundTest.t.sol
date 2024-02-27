@@ -2,13 +2,19 @@
 
 pragma solidity ^0.8.18;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {TigrinhoFund} from "../src/TigrinhoFund.sol";
 import {DeployTigrinhoFund} from "../script/DeployTigrinhoFund.s.sol";
+import {Tigrinho} from "../src/Tigrinho.sol";
+import {DeployTigrinho} from "../script/DeployTigrinho.s.sol";
+
 
 contract TigrinhoFundTest is Test {
     TigrinhoFund public tigrinhoFund;
     DeployTigrinhoFund public deployer;
+
+    Tigrinho public tigrinho;
+    DeployTigrinho public deployerTigrinho;
 
     uint256 public constant INVESTMENT_1 = 100 * 1e18;
     uint256 public constant INVESTMENT_2 = 200 * 1e18;
@@ -25,6 +31,9 @@ contract TigrinhoFundTest is Test {
     function setUp() public {
         deployer = new DeployTigrinhoFund();
         tigrinhoFund = deployer.run();
+
+        deployerTigrinho = new DeployTigrinho();
+        tigrinho = deployerTigrinho.run();
 
         vm.deal(joao, 100000000 * 1e18);
         vm.deal(maria, 100000000 * 1e18);
@@ -65,30 +74,38 @@ contract TigrinhoFundTest is Test {
     }
 
     function testContribuidoresArray() public {
-        assertEq(joao, tigrinhoFund.getContribuidores()[0]);
-        assertEq(maria, tigrinhoFund.getContribuidores()[1]);
-        assertEq(douglas, tigrinhoFund.getContribuidores()[2]);
-        assertEq(marcelo, tigrinhoFund.getContribuidores()[3]);
-        assertEq(lucas, tigrinhoFund.getContribuidores()[4]);
+        assertEq(joao, tigrinhoFund.contribuidores(0));
+        assertEq(maria, tigrinhoFund.contribuidores(1));
+        assertEq(douglas, tigrinhoFund.contribuidores(2));
+        assertEq(marcelo, tigrinhoFund.contribuidores(3));
+        assertEq(lucas, tigrinhoFund.contribuidores(4));
     }
 
-    // function testRetirar() public {
-    //     uint256 initialBalance = tigrinhoFund.getTotalContribuido();
-    //     uint256 contractBalanceBefore = address(tigrinhoFund).balance;
+    function testRetirar() public {
+        uint256 initialBalance = tigrinhoFund.totalContribuido();
+        console.log("Saldo Inicial do TigrinhoFund Salvo: ", initialBalance);
+        uint256 contractBalanceBefore = address(tigrinhoFund).balance;
+        console.log("Saldo Inicial TigrinhoFund Direto", contractBalanceBefore);
 
-    //     vm.prank(tigrinhoFund.owner());
-    //     tigrinhoFund.retirar();
+        uint256 ownerBalanceBefore = tigrinhoFund.owner().balance;
+        console.log("saldo dono antes retirada: ", ownerBalanceBefore);
 
-    //     uint256 contractBalanceAfter = address(tigrinhoFund).balance;
-    //     uint256 ownerBalanceAfter = tigrinhoFund.balanceOf(tigrinhoFund.owner());
+        vm.prank(msg.sender);
+        tigrinhoFund.retirar();
 
-    //     // Check that the contract's balance has decreased by the right amount
-    //     assertEq(contractBalanceBefore - initialBalance, contractBalanceAfter);
+        console.log("saldo dono apos retirada: ", tigrinhoFund.owner().balance);
 
-    //     // Check that the owner's balance has increased by the right amount
-    //     assertEq(initialBalance, ownerBalanceAfter);
+        uint256 contractBalanceAfter = address(tigrinhoFund).balance;
+        console.log("Saldo contrato apos: ", contractBalanceAfter);
+        uint256 ownerBalanceAfter = tigrinhoFund.owner().balance;
 
-    //     // Check that the total contributed amount is now 0
-    //     assertEq(0, tigrinhoFund.getTotalContribuido());
-    // }
+        // Check that the contract's balance has decreased by the right amount
+        assertEq(contractBalanceBefore - initialBalance, contractBalanceAfter);
+
+        // Check that the owner's balance has increased by the right amount
+        assertEq(initialBalance, ownerBalanceAfter - ownerBalanceBefore);
+
+        // Check that the total contributed amount is now 0
+        assertEq(0, tigrinhoFund.totalContribuido());
+    }
 }

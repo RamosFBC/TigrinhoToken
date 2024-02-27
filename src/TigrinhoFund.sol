@@ -6,7 +6,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 
 contract TigrinhoFund is Ownable {
-    constructor() Ownable(msg.sender) {}
         address[] public contribuidores;
         uint256 public totalContribuido;
         // Mapeamento de quanto cada contribuidor contribuiu
@@ -15,6 +14,10 @@ contract TigrinhoFund is Ownable {
         // Eventos para sinalizar mudanças de estado importantes no contrato
         event ContribuicaoRealizada(address contribuidor, uint256 valor);
         event FundosRetirados(uint256 valor);
+
+    constructor() Ownable(msg.sender) {
+        totalContribuido = 0;
+    }
     
     // Função para contribuidores investirem no projeto
     function contribuir() external payable {
@@ -42,6 +45,8 @@ contract TigrinhoFund is Ownable {
         require(saldoContrato > 0, "Nenhum valor para ser retirado");
         // Transfere o saldo do contrato ao Fundador
         payable(owner()).transfer(saldoContrato);
+        // Zera o total contribuido
+        totalContribuido = 0;
         // Emite evento de Fundos Retirados
         emit FundosRetirados(saldoContrato);
     }
@@ -50,17 +55,9 @@ contract TigrinhoFund is Ownable {
         return contribuidores.length;
     }
 
-    function getContribuidores() external view returns (address[] memory) {
-        return contribuidores;
-    }
-
     function getValorContribuido(address contribuidor) external view returns (uint256) {
         return valorContribuido[contribuidor];
 }
-
-    function getTotalContribuido() external view returns (uint256) {
-        return totalContribuido;
-    }
 
 
 }
