@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: The Unlicense
 
 pragma solidity ^0.8.18;
 
@@ -33,7 +33,7 @@ contract TigrinhoFund is Ownable {
             totalContribuido += msg.value;
         }
         // Emite evento de Contribuição Realizada
-        emit ContribuicaoRealizada(msg.sender, msg.value);
+        emit ContribuicaoRealizada(msg.sender, msg.value / 1e18);
     }
 
     // Função a ser chamada pelo Fundador para retirar os fundos a serem utilizados
@@ -49,6 +49,16 @@ contract TigrinhoFund is Ownable {
         totalContribuido = 0;
         // Emite evento de Fundos Retirados
         emit FundosRetirados(saldoContrato);
+
+        // Reinicia mapping Valor Contribuído
+        for (uint256 i = 0; i < contribuidores.length; i++) {
+            valorContribuido[contribuidores[i]] = 0;
+        }
+        // Reinicia contrubuidores do contrato
+        delete contribuidores;
+        // reinicia Total Contribuído
+        totalContribuido = 0;
+
     }
 
     function getQuantidadeContribuidores() external view returns (uint256) {

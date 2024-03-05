@@ -107,5 +107,15 @@ contract TigrinhoFundTest is Test {
 
         // Check that the total contributed amount is now 0
         assertEq(0, tigrinhoFund.totalContribuido());
+
+        assertEq(tigrinhoFund.getQuantidadeContribuidores(), 0);
+
+        assertEq(tigrinhoFund.totalContribuido(), 0);
+
+        assertEq(0, tigrinhoFund.getValorContribuido(joao));
+        assertEq(0, tigrinhoFund.getValorContribuido(maria));
+        assertEq(0, tigrinhoFund.getValorContribuido(douglas));
+        assertEq(0, tigrinhoFund.getValorContribuido(marcelo));
+        assertEq(0, tigrinhoFund.getValorContribuido(lucas));
     }
 }

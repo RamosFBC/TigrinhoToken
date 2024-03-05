@@ -38,14 +38,15 @@ contract TigrinhoCommunityHolderTest is Test {
     address felipe = makeAddr("Felipe");
 
     function setUp() public {
-        fundDeployer = new DeployTigrinhoFund();
-        tigrinhoFund = fundDeployer.run();
 
         tigrinhoDeployer = new DeployTigrinho();
         tigrinho = tigrinhoDeployer.run();
 
-        communityHolderDeployer = new DeployTigrinhoCommunityHolder(address(tigrinho), address(tigrinhoFund));
-        tigrinhoCommunityHolder = communityHolderDeployer.run();
+        fundDeployer = new DeployTigrinhoFund();
+        tigrinhoFund = fundDeployer.run();
+
+        communityHolderDeployer = new DeployTigrinhoCommunityHolder();
+        tigrinhoCommunityHolder = communityHolderDeployer.run(address(tigrinho), address(tigrinhoFund));
 
         // vm.prank(msg.sender);
         // tigrinho.approve(address(tigrinhoCommunityHolder), COMMUNITY_SUPPLY);
@@ -143,7 +144,6 @@ contract TigrinhoCommunityHolderTest is Test {
         
 
         console.log("Summed balances: ", balanceJoao + balanceMaria + balanceDouglas + balanceMarcelo + balanceLucas + balanceFelipe);
-        console.log("contribuidores", tigrinhoFund.contribuidores(1));
     }
 
 }

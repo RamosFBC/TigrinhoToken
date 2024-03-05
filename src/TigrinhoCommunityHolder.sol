@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: The Unlicense
 
 pragma solidity ^0.8.18;
 
@@ -11,10 +11,6 @@ contract TigrinhoCommunityHolder is Ownable {
     IERC20 public tigrinho;
     // Referência para o contrato TigrinhoFund que gerencia as contribuicoes
     TigrinhoFund public tigrinhoFund;
-
-    // saldoComunidadeInicial é o saldo inicial depositado no contrato
-    // para distribuir para a comunidade
-    uint256 public saldoTigrinhoContrato;
 
     // Eventos para notificar as ações do contrato
     event TokensDistribuidos(address destinatario, uint256 quantidade);
@@ -37,13 +33,14 @@ contract TigrinhoCommunityHolder is Ownable {
             // Verifica se existe algum valor para ser distribuído
             require(totalDepositado > 0, "TigrinhoFund deve ter valor depositado para Distribuicao de tokens.");
 
-            saldoTigrinhoContrato = tigrinho.balanceOf(address(this));
+            uint256 saldoTigrinhoContrato = getSaldoTigrinho();
 
             // Pega a quantidade de contribuidores e a lista de contribuidores
             uint256 quantidadeContribuidores = tigrinhoFund.getQuantidadeContribuidores();
             // Verifica se existe contribuidores para distribuir os tokens
             require(quantidadeContribuidores > 0, "TigrinhoFund deve ter contribuidores para Distribuicao de tokens.");
 
+            
             emit SaldoTigrinhoAntesDaDistribuicao(getSaldoTigrinho());
 
             // Calcula as quantidades de tokens a serem transferidos para cada contribuidor
@@ -57,8 +54,10 @@ contract TigrinhoCommunityHolder is Ownable {
                 // Transfere os tokens para o contribuidor
                 require(tigrinho.balanceOf(address(this)) >= quantidadeTokens, "O saldo do contrato em Tigrinhos deve ser maior ou igual o valor a ser transferido");
                 tigrinho.transfer(contribuidor, quantidadeTokens);
+                // Emite evento com a quantidade de tokens distribuídos
                 emit TokensDistribuidos(contribuidor, quantidadeTokens);
             }
+            // Emite evento com o saldo após a distribuição
             emit SaldoTigrinhoDepoisDaDistribuicao(getSaldoTigrinho());
         }
 
