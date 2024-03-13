@@ -48,9 +48,8 @@ contract TigrinhoCommunityHolderTest is Test {
         communityHolderDeployer = new DeployTigrinhoCommunityHolder();
         tigrinhoCommunityHolder = communityHolderDeployer.run(address(tigrinho), address(tigrinhoFund));
 
-        // vm.prank(msg.sender);
-        // tigrinho.approve(address(tigrinhoCommunityHolder), COMMUNITY_SUPPLY);
-        // tigrinhoCommunityHolder.depositar(COMMUNITY_SUPPLY);
+        vm.prank(msg.sender);
+        tigrinhoFund.setTigrinhoCommunityHolder(address(tigrinhoCommunityHolder));
 
         vm.deal(joao, 100000000 * 1e18);
         vm.deal(maria, 100000000 * 1e18);

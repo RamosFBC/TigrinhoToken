@@ -3,9 +3,14 @@
 pragma solidity ^0.8.18;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {TigrinhoCommunityHolder} from "./TigrinhoCommunityHolder.sol";
 
 
 contract TigrinhoFund is Ownable {
+
+        // Referencia do contrato TigrinhoCommunityHolder
+        TigrinhoCommunityHolder public tigrinhoCommunityHolder;
+
         address[] public contribuidores;
         uint256 public totalContribuido;
         // Mapeamento de quanto cada contribuidor contribuiu
@@ -41,8 +46,12 @@ contract TigrinhoFund is Ownable {
     function retirar() external onlyOwner {
         // Cria variável com o saldo do contrato
         uint256 saldoContrato = address(this).balance;
-        // Verifica se o valor contribuído é válido
+        // Cria variável para saldo em TIGR de acordo com o contrato TigrinhoCommunityHolder
+        uint256 saldoTigrinho = tigrinhoCommunityHolder.getSaldoTigrinho();
+        // Verifica se o valor contribuído é válido e se existe saldo em TIGR para ser distribuído
+        // no contrato TigrinhoCommunityHolder
         require(saldoContrato > 0, "Nenhum valor para ser retirado");
+        require(saldoTigrinho < 10, "E necessario distribuir os tokens antes de realizar a retirada");
         // Transfere o saldo do contrato ao Fundador
         payable(owner()).transfer(saldoContrato);
         // Zera o total contribuido
@@ -59,6 +68,10 @@ contract TigrinhoFund is Ownable {
         // reinicia Total Contribuído
         totalContribuido = 0;
 
+    }
+
+    function setTigrinhoCommunityHolder(address endereco) external onlyOwner {
+        tigrinhoCommunityHolder = TigrinhoCommunityHolder(endereco);
     }
 
     function getQuantidadeContribuidores() external view returns (uint256) {

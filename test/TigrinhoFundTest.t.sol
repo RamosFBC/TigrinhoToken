@@ -7,6 +7,8 @@ import {TigrinhoFund} from "../src/TigrinhoFund.sol";
 import {DeployTigrinhoFund} from "../script/DeployTigrinhoFund.s.sol";
 import {Tigrinho} from "../src/Tigrinho.sol";
 import {DeployTigrinho} from "../script/DeployTigrinho.s.sol";
+import {TigrinhoCommunityHolder} from "../src/TigrinhoCommunityHolder.sol";
+import {DeployTigrinhoCommunityHolder} from "../script/DeployTigrinhoCommunityHolder.s.sol";
 
 
 contract TigrinhoFundTest is Test {
@@ -15,6 +17,12 @@ contract TigrinhoFundTest is Test {
 
     Tigrinho public tigrinho;
     DeployTigrinho public deployerTigrinho;
+
+    TigrinhoCommunityHolder public tigrinhoCommunityHolder;
+    DeployTigrinhoCommunityHolder public deployerTigrinhoCommunityHolder;
+
+    uint256 public constant INITIAL_SUPPLY = 69 * 1e9 ether;
+    uint256 public constant COMMUNITY_SUPPLY = INITIAL_SUPPLY * 40 / 100;
 
     uint256 public constant INVESTMENT_1 = 100 * 1e18;
     uint256 public constant INVESTMENT_2 = 200 * 1e18;
@@ -35,11 +43,17 @@ contract TigrinhoFundTest is Test {
         deployerTigrinho = new DeployTigrinho();
         tigrinho = deployerTigrinho.run();
 
+        deployerTigrinhoCommunityHolder = new DeployTigrinhoCommunityHolder();
+        tigrinhoCommunityHolder = deployerTigrinhoCommunityHolder.run(address(tigrinho), address(tigrinhoFund));
+
         vm.deal(joao, 100000000 * 1e18);
         vm.deal(maria, 100000000 * 1e18);
         vm.deal(douglas, 100000000 * 1e18);
         vm.deal(marcelo, 100000000 * 1e18);
         vm.deal(lucas, 100000000 * 1e18);
+
+        vm.prank(msg.sender);
+        tigrinhoFund.setTigrinhoCommunityHolder(address(tigrinhoCommunityHolder));
 
         vm.prank(joao);
         tigrinhoFund.contribuir{value: INVESTMENT_1}();
@@ -82,13 +96,22 @@ contract TigrinhoFundTest is Test {
     }
 
     function testRetirar() public {
+        vm.prank(msg.sender);
+        tigrinho.transfer(address(tigrinhoCommunityHolder), COMMUNITY_SUPPLY);
         uint256 initialBalance = tigrinhoFund.totalContribuido();
         console.log("Saldo Inicial do TigrinhoFund Salvo: ", initialBalance);
         uint256 contractBalanceBefore = address(tigrinhoFund).balance;
         console.log("Saldo Inicial TigrinhoFund Direto", contractBalanceBefore);
+        uint256 tigrinhoBalanceTCHolder = tigrinhoCommunityHolder.getSaldoTigrinho();
+        console.log("Saldo TigrinhoCommunityHolder antes: ", tigrinhoBalanceTCHolder);
 
         uint256 ownerBalanceBefore = tigrinhoFund.owner().balance;
         console.log("saldo dono antes retirada: ", ownerBalanceBefore);
+
+        vm.prank(msg.sender);
+        tigrinhoCommunityHolder.distribuirTokens();
+        tigrinhoBalanceTCHolder = tigrinhoCommunityHolder.getSaldoTigrinho();
+        console.log("Saldo TigrinhoCommunityHolder depois: ", tigrinhoBalanceTCHolder);
 
         vm.prank(msg.sender);
         tigrinhoFund.retirar();
